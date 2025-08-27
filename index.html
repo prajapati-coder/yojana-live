@@ -1,0 +1,307 @@
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <title>योजना लाइव | नई सरकारी योजनाओं की अपडेट</title>
+  <meta name="description" content="भारत सरकार की नई/चलती योजनाएँ — एक जगह पर घोषणाएँ, पात्रता, लाभ, आवेदन लिंक, FAQ. यह एक मुफ्त, हल्का और तेज़ टेम्पलेट है।"/>
+  <meta name="robots" content="index,follow"/>
+  <meta property="og:title" content="योजना लाइव"/>
+  <meta property="og:description" content="भारत सरकार की नई योजनाएँ — पात्रता, लाभ, आवेदन लिंक"/>
+  <meta property="og:type" content="website"/>
+  <meta property="og:image" content="https://dummyimage.com/1200x630/eeeeee/111111&text=Yojana+Live"/>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='0.9em' font-size='90'>🗂️</text></svg>">
+
+  <!-- Tailwind via CDN (production में self-host करें) -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    /* हल्का कस्टम स्टाइल */
+    .card{ box-shadow:0 10px 25px -12px rgba(0,0,0,.15) }
+    .line-clamp-3{ display:-webkit-box; -webkit-line-clamp:3; -webkit-box-orient:vertical; overflow:hidden }
+  </style>
+  <script>
+    // --- Demo data (उदाहरण) ---
+    // असली डेटा जोड़ते समय नीचे दिए गए schema को follow करें
+    const schemes = [
+      {
+        id:"demo1",
+        title:"उदाहरण योजना 1 (केंद्रीय)",
+        summary:"यह सिर्फ डेमो कार्ड है। यहाँ संक्षेप में लाभ, पात्रता और आवेदन समय-सीमा लिखें।",
+        ministry:"केंद्रीय",
+        categories:["छात्र", "स्कॉलरशिप"],
+        eligibility:"भारतीय नागरिक, 10वीं/12वीं उत्तीर्ण",
+        benefits:"मासिक छात्रवृत्ति ₹1000 तक",
+        apply_url:"#",
+        doc_url:"#",
+        published:"2025-08-15",
+        last_date:"2025-10-15",
+        tags:["नई","शिक्षा"]
+      },
+      {
+        id:"demo2",
+        title:"उदाहरण योजना 2 (महिला सशक्तिकरण)",
+        summary:"महिलाओं के लिए उद्यमिता सहायता।",
+        ministry:"केंद्रीय",
+        categories:["महिला", "MSME"],
+        eligibility:"18–55 वर्ष, आधार अनिवार्य",
+        benefits:"ब्याज में रियायत, प्रशिक्षण",
+        apply_url:"#",
+        doc_url:"#",
+        published:"2025-08-10",
+        last_date:null,
+        tags:["उद्यम","वित्त"]
+      },
+      {
+        id:"demo3",
+        title:"उदाहरण योजना 3 (किसान)",
+        summary:"कृषि उपकरणों पर सब्सिडी।",
+        ministry:"केंद्रीय",
+        categories:["किसान"],
+        eligibility:"किसान पंजीकरण आवश्यक",
+        benefits:"उपकरण पर 40% तक सब्सिडी",
+        apply_url:"#",
+        doc_url:"#",
+        published:"2025-07-30",
+        last_date:"2025-09-30",
+        tags:["कृषि","सब्सिडी"]
+      },
+      {
+        id:"demo4",
+        title:"उदाहरण योजना 4 (सीनियर सिटीजन)",
+        summary:"60+ आयु के नागरिकों के लिए स्वास्थ्य कवर।",
+        ministry:"केंद्रीय",
+        categories:["वरिष्ठ नागरिक", "स्वास्थ्य"],
+        eligibility:"60 वर्ष या अधिक",
+        benefits:"स्वास्थ्य बीमा कवर ₹5 लाख तक",
+        apply_url:"#",
+        doc_url:"#",
+        published:"2025-08-20",
+        last_date:null,
+        tags:["स्वास्थ्य","बीमा"]
+      },
+      {
+        id:"demo5",
+        title:"उदाहरण योजना 5 (कौशल विकास)",
+        summary:"युवा के लिए निःशुल्क स्किल ट्रेनिंग।",
+        ministry:"केंद्रीय",
+        categories:["युवा", "रोज़गार"],
+        eligibility:"18–29 वर्ष",
+        benefits:"3 माह का प्रशिक्षण, जॉब असिस्टेंस",
+        apply_url:"#",
+        doc_url:"#",
+        published:"2025-08-25",
+        last_date:null,
+        tags:["ट्रेनिंग","जॉब"]
+      }
+    ];
+
+    // --- Utilities ---
+    const fmtDate = d => d ? new Date(d).toLocaleDateString('hi-IN',{day:'2-digit',month:'short',year:'numeric'}) : '—';
+
+    function getBookmarks(){
+      try{ return JSON.parse(localStorage.getItem('bookmarks')||'[]'); }catch(e){ return []; }
+    }
+
+    function toggleBookmark(id){
+      const set = new Set(getBookmarks());
+      set.has(id) ? set.delete(id) : set.add(id);
+      localStorage.setItem('bookmarks', JSON.stringify([...set]));
+      render();
+    }
+
+    // --- Render Logic ---
+    function render(){
+      const q = document.getElementById('q').value.toLowerCase();
+      const cat = document.getElementById('category').value;
+      const sort = document.getElementById('sort').value;
+      const onlyBook = document.getElementById('onlyBook').checked;
+      const bookmarks = new Set(getBookmarks());
+
+      let list = schemes.filter(s => {
+        const inText = (s.title + ' ' + s.summary + ' ' + s.eligibility + ' ' + s.tags.join(' ')).toLowerCase().includes(q);
+        const inCat = !cat || s.categories.includes(cat);
+        const inBook = !onlyBook || bookmarks.has(s.id);
+        return inText && inCat && inBook;
+      });
+
+      if(sort==='latest') list.sort((a,b)=> new Date(b.published)-new Date(a.published));
+      if(sort==='deadline') list.sort((a,b)=> new Date(a.last_date||'2100-01-01') - new Date(b.last_date||'2100-01-01'));
+
+      const wrap = document.getElementById('cards');
+      wrap.innerHTML = '';
+
+      if(!list.length){
+        wrap.innerHTML = `<div class='text-center p-10 text-gray-500'>कोई परिणाम नहीं मिला। कीवर्ड बदलकर देखें।</div>`;
+        return;
+      }
+
+      for(const s of list){
+        const bookmarked = bookmarks.has(s.id);
+        const tagHtml = s.tags.map(t=>`<span class='px-2 py-0.5 rounded-full bg-gray-100 text-gray-700 text-xs'>${t}</span>`).join(' ');
+        const catHtml = s.categories.map(c=>`<span class='px-2 py-0.5 rounded-full bg-blue-50 text-blue-700 text-xs'>${c}</span>`).join(' ');
+        const deadline = s.last_date ? fmtDate(s.last_date) : '—';
+
+        wrap.insertAdjacentHTML('beforeend', `
+          <article class="card rounded-2xl bg-white p-5 border border-gray-100">
+            <div class="flex items-start justify-between gap-4">
+              <h3 class="text-lg md:text-xl font-semibold leading-snug">${s.title}</h3>
+              <button aria-label="Bookmark" class="shrink-0" onclick="toggleBookmark('${s.id}')">
+                <span class="text-xl">${bookmarked ? '★' : '☆'}</span>
+              </button>
+            </div>
+            <p class="text-gray-600 mt-2 line-clamp-3">${s.summary}</p>
+            <div class="flex flex-wrap gap-2 mt-3">${catHtml} ${tagHtml}</div>
+            <dl class="grid grid-cols-2 md:grid-cols-4 gap-3 mt-4 text-sm">
+              <div><dt class="text-gray-500">प्रकाशित</dt><dd class="font-medium">${fmtDate(s.published)}</dd></div>
+              <div><dt class="text-gray-500">अंतिम तिथि</dt><dd class="font-medium">${deadline}</dd></div>
+              <div><dt class="text-gray-500">मंत्रालय</dt><dd class="font-medium">${s.ministry}</dd></div>
+              <div><dt class="text-gray-500">पात्रता</dt><dd class="font-medium">${s.eligibility}</dd></div>
+            </dl>
+            <div class="flex flex-wrap items-center gap-3 mt-4">
+              <a href="${s.apply_url}" target="_blank" class="px-4 py-2 rounded-xl bg-blue-600 text-white hover:bg-blue-700">Apply Now</a>
+              <a href="${s.doc_url}" target="_blank" class="px-4 py-2 rounded-xl bg-gray-100 hover:bg-gray-200">Official Notice</a>
+              <a href="mailto:editor@yourdomain.in?subject=Scheme%20Update%20for%20${encodeURIComponent(s.title)}" class="text-sm text-gray-600 underline">Update/Correction भेजें</a>
+            </div>
+          </article>
+        `);
+      }
+
+      document.getElementById('resultCount').textContent = list.length;
+    }
+
+    function uniqueCats(){
+      const set = new Set();
+      schemes.forEach(s=> s.categories.forEach(c=> set.add(c)));
+      return [''].concat([...set]);
+    }
+
+    document.addEventListener('DOMContentLoaded', ()=>{
+      // categories fill
+      const sel = document.getElementById('category');
+      uniqueCats().forEach(c=>{
+        const opt = document.createElement('option');
+        opt.value = c; opt.textContent = c ? c : 'सभी श्रेणियाँ';
+        sel.appendChild(opt);
+      });
+      render();
+    });
+  </script>
+</head>
+<body class="bg-gray-50 text-gray-900">
+  <!-- Top Bar -->
+  <header class="bg-white border-b border-gray-200 sticky top-0 z-40">
+    <div class="max-w-6xl mx-auto px-4 py-4 flex items-center gap-4">
+      <div class="text-2xl font-bold">योजना<span class="text-blue-600">Live</span></div>
+      <nav class="ml-auto hidden md:flex gap-6 text-sm">
+        <a href="#about" class="hover:text-blue-700">हमारे बारे में</a>
+        <a href="#submit" class="hover:text-blue-700">योजना भेजें</a>
+        <a href="#ads" class="hover:text-blue-700">Ads/सहयोग</a>
+      </nav>
+    </div>
+  </header>
+
+  <!-- Hero/Search -->
+  <section class="max-w-6xl mx-auto px-4 py-8">
+    <div class="bg-gradient-to-br from-blue-50 to-indigo-50 border border-blue-100 p-6 md:p-10 rounded-3xl">
+      <h1 class="text-3xl md:text-4xl font-extrabold leading-tight">नई सरकारी योजनाएँ — एक ही जगह</h1>
+      <p class="mt-2 text-gray-700">ताज़ा घोषणाएँ, पात्रता, लाभ, आधिकारिक लिंक और डेडलाइन ट्रैकर।
+      </p>
+
+      <div class="mt-6 grid md:grid-cols-4 gap-3 items-center">
+        <div class="md:col-span-2">
+          <label for="q" class="sr-only">खोजें</label>
+          <input id="q" type="search" placeholder="खोजें: किसान, छात्रवृत्ति, महिला, स्वास्थ्य..." class="w-full px-4 py-3 rounded-2xl border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500" oninput="render()"/>
+        </div>
+        <div>
+          <select id="category" class="w-full px-4 py-3 rounded-2xl border border-gray-300" onchange="render()"></select>
+        </div>
+        <div>
+          <select id="sort" class="w-full px-4 py-3 rounded-2xl border border-gray-300" onchange="render()">
+            <option value="latest">नवीनतम पहले</option>
+            <option value="deadline">डेडलाइन सबसे नज़दीक</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="mt-3 flex items-center gap-4 text-sm">
+        <label class="inline-flex items-center gap-2"><input id="onlyBook" type="checkbox" onchange="render()"/> सिर्फ बुकमार्क</label>
+        <span class="text-gray-600">कुल <b id="resultCount">0</b> परिणाम</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- Ad Placeholder -->
+  <section id="ad-top" class="max-w-6xl mx-auto px-4">
+    <div class="rounded-2xl bg-white border border-dashed border-gray-300 p-6 text-center text-gray-500">(Ad Slot — 728×90 / 970×250)</div>
+  </section>
+
+  <!-- Cards -->
+  <main class="max-w-6xl mx-auto px-4 py-6 grid md:grid-cols-2 lg:grid-cols-3 gap-6" id="cards"></main>
+
+  <!-- Submit a Scheme / Contact -->
+  <section id="submit" class="max-w-6xl mx-auto px-4 py-10">
+    <div class="bg-white border border-gray-200 rounded-3xl p-6 md:p-8 card">
+      <h2 class="text-2xl font-bold">कोई नई योजना मिली?</h2>
+      <p class="mt-2 text-gray-700">आधिकारिक लिंक/पीडीएफ के साथ भेजें — हम सत्यापन के बाद प्रकाशित करेंगे।</p>
+      <form class="mt-4 grid md:grid-cols-2 gap-4" onsubmit="event.preventDefault(); alert('धन्यवाद! हम रिव्यू करेंगे।'); this.reset();">
+        <input required class="px-4 py-3 rounded-2xl border border-gray-300" placeholder="योजना/स्कीम का नाम"/>
+        <input required type="url" class="px-4 py-3 rounded-2xl border border-gray-300" placeholder="आधिकारिक लिंक (URL)"/>
+        <input class="md:col-span-2 px-4 py-3 rounded-2xl border border-gray-300" placeholder="संक्षेप (1–2 पंक्तियाँ)"/>
+        <button class="md:col-span-2 px-5 py-3 bg-blue-600 text-white rounded-2xl hover:bg-blue-700">भेजें</button>
+      </form>
+    </div>
+  </section>
+
+  <!-- Monetization / Ads -->
+  <section id="ads" class="max-w-6xl mx-auto px-4 pb-10">
+    <div class="bg-white border border-gray-200 rounded-3xl p-6 md:p-8 card">
+      <h2 class="text-2xl font-bold">कमाई कैसे होगी?</h2>
+      <ul class="list-disc pl-6 mt-3 space-y-2 text-gray-700">
+        <li><b>Google AdSense</b> (ट्रैफिक/पेज-व्यू के आधार पर)। साइट को 15–20 अच्छे आर्टिकल, स्थिर ट्रैफिक, और नीतियों का पालन चाहिए।</li>
+        <li><b>Direct Sponsorships</b> — कौशल प्रशिक्षण/एडटेक/बीमा जैसी ब्रांडेड पोस्ट। हमेशा <i>Sponsored</i> टैग लगाएँ।</li>
+        <li><b>न्यूज़लेटर</b> — ईमेल सब्सक्राइबर बनाइए, फिर स्पॉन्सर्ड स्लॉट या जॉब/स्कॉलरशिप अलर्ट बेचें।</li>
+        <li><b>UPI सपोर्ट</b> — “मदद/Donate” पेज में UPI QR।</li>
+      </ul>
+      <p class="text-sm text-gray-500 mt-3">नोट: सरकारी योजनाओं पर भ्रामक/क्लिकबेट हेडलाइन या गलत जानकारी से AdSense बंद हो सकता है। हमेशा आधिकारिक स्रोत लिंक दें।</p>
+    </div>
+  </section>
+
+  <!-- About -->
+  <section id="about" class="max-w-6xl mx-auto px-4 pb-16">
+    <div class="bg-white border border-gray-200 rounded-3xl p-6 md:p-8 card">
+      <h2 class="text-2xl font-bold">हमारे बारे में</h2>
+      <p class="mt-2 text-gray-700">यह ओपन-सोर्स टेम्पलेट सरकारी योजनाओं की जानकारी को साफ़, तेज़ और मोबाइल-फर्स्ट तरीके से दिखाने के लिए बनाया गया है। इसे आप Netlify/Vercel पर मुफ्त होस्ट कर सकते हैं।</p>
+      <h3 class="mt-6 font-semibold">डेटा कैसे जोड़ें?</h3>
+      <ol class="list-decimal pl-6 space-y-1 text-gray-700 mt-2">
+        <li><code>schemes</code> नाम की JS array (ऊपर) में हर योजना को एक object के रूप में जोड़ें।</li>
+        <li>हर object में: <code>title, summary, categories[], eligibility, benefits, apply_url, doc_url, published, last_date, tags[]</code> भरें।</li>
+        <li>Source (आधिकारिक) लिंक हर कार्ड में <b>Official Notice</b> पर दें।</li>
+      </ol>
+      <h3 class="mt-6 font-semibold">SEO & विश्वसनीयता</h3>
+      <ul class="list-disc pl-6 space-y-1 text-gray-700 mt-2">
+        <li>हर योजना के लिए अलग ब्लॉग-पेज (यदि WordPress/Next.js) बनाएं और JSON-LD <code>NewsArticle</code>/<code>GovernmentService</code> schema जोड़ें।</li>
+        <li>निर्माण तिथि, स्रोत, अंतिम अपडेट तिथि/समय स्पष्ट दिखाएँ।</li>
+        <li>Fake/rumor से बचने के लिए केवल आधिकारिक PDF/Press Release/Portal लिंक दें।</li>
+      </ul>
+      <h3 class="mt-6 font-semibold">कानूनी</h3>
+      <p class="text-gray-700">यह साइट सरकारी पोर्टल नहीं है। हम केवल सार्वजनिक रूप से उपलब्ध सरकारी सूचनाओं का सार प्रस्तुत करते हैं। निर्णय लेने से पहले हमेशा आधिकारिक वेबसाइट देखें।</p>
+    </div>
+  </section>
+
+  <!-- Footer -->
+  <footer class="bg-white border-t border-gray-200">
+    <div class="max-w-6xl mx-auto px-4 py-8 text-sm text-gray-600">
+      <div class="flex flex-col md:flex-row items-start md:items-center gap-3 md:gap-6 justify-between">
+        <div>© <span id="yr"></span> योजनाLive • स्वतंत्र सूचना मंच</div>
+        <div class="flex gap-4">
+          <a href="#" onclick="alert('जल्द ही…'); return false;">Privacy</a>
+          <a href="#" onclick="alert('जल्द ही…'); return false;">Terms</a>
+          <a href="mailto:editor@yourdomain.in">संपर्क</a>
+        </div>
+      </div>
+    </div>
+  </footer>
+
+  <script>document.getElementById('yr').textContent = new Date().getFullYear();</script>
+</body>
+</html>
